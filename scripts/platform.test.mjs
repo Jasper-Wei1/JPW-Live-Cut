@@ -5,6 +5,7 @@ import {
   commandLocator,
   remotionInvocation,
   requiredPlatformTools,
+  runtimeTuning,
   usesWhisperTokenTimestamps,
   whisperDirectory,
   whisperExecutableName,
@@ -47,4 +48,33 @@ test("Remotion 始终通过 Node 直接执行 CLI 入口", () => {
     "ffmpeg",
     "-version",
   ]);
+});
+
+test("根据当前可用处理器和内存推导运行时并发", () => {
+  assert.deepEqual(
+    runtimeTuning({
+      availableProcessors: 12,
+      memoryBytes: 32 * 1024 ** 3,
+    }),
+    {
+      availableProcessors: 12,
+      memoryGiB: 32,
+      whisperThreads: 10,
+      renderConcurrency: 8,
+      hardwareAcceleration: "if-possible",
+    },
+  );
+  assert.deepEqual(
+    runtimeTuning({
+      availableProcessors: 4,
+      memoryBytes: 8 * 1024 ** 3,
+    }),
+    {
+      availableProcessors: 4,
+      memoryGiB: 8,
+      whisperThreads: 3,
+      renderConcurrency: 2,
+      hardwareAcceleration: "if-possible",
+    },
+  );
 });

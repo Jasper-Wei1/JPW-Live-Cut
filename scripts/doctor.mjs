@@ -7,6 +7,7 @@ import {
   commandLocator,
   remotionCliPath,
   requiredPlatformTools,
+  runtimeTuning,
   whisperDirectory,
   whisperExecutableName,
 } from "./platform.mjs";
@@ -14,6 +15,7 @@ import {
 const root = resolve(import.meta.dirname, "..");
 const whisperDir = whisperDirectory(root);
 const checks = [];
+const tuning = runtimeTuning();
 
 const add = (name, ok, detail) => checks.push({ name, ok, detail });
 const nodeMajor = Number(process.versions.node.split(".")[0]);
@@ -64,6 +66,11 @@ add(
   "直播原片输入目录",
   existsSync(join(root, "输入/媒体素材/直播录像")),
   "输入/媒体素材/直播录像/",
+);
+add(
+  "Runtime tuning",
+  true,
+  `${tuning.availableProcessors} processors, ${tuning.memoryGiB} GiB RAM; Whisper ${tuning.whisperThreads} threads, render concurrency ${tuning.renderConcurrency}, hardware acceleration ${tuning.hardwareAcceleration}`,
 );
 
 for (const check of checks) {

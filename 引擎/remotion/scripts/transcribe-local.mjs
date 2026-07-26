@@ -36,6 +36,7 @@ import {
 } from "./lib/transcript-quality.mjs";
 import {
   remotionInvocation,
+  runtimeTuning,
   usesWhisperTokenTimestamps,
   whisperDirectory,
   whisperExecutableName,
@@ -63,6 +64,7 @@ const MODEL_SIZES = {
 };
 
 const args = parseArgs(process.argv.slice(2));
+const tuning = runtimeTuning();
 if (args.help || (!args.installOnly && !args.input)) {
   printHelp();
   process.exit(args.help ? 0 : 1);
@@ -321,6 +323,7 @@ async function transcribeNormalized(
     tokensPerItem,
     splitOnWord: false,
     printOutput: false,
+    additionalArgs: ["-t", String(tuning.whisperThreads)],
   });
   const { captions } = toCaptions({ whisperCppOutput });
   return {

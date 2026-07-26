@@ -5,7 +5,11 @@ import { access, mkdir, readFile, stat, writeFile } from "node:fs/promises";
 import { constants } from "node:fs";
 import { dirname, join, relative, resolve, sep } from "node:path";
 import { fileURLToPath } from "node:url";
-import { remotionCliPath, remotionInvocation } from "./platform.mjs";
+import {
+  remotionCliPath,
+  remotionInvocation,
+  runtimeTuning,
+} from "./platform.mjs";
 
 const SCRIPT_DIR = dirname(fileURLToPath(import.meta.url));
 const REPO_ROOT = resolve(SCRIPT_DIR, "..");
@@ -183,6 +187,7 @@ async function persistBatch(batchPath, batch, copyConfirmed) {
 
 async function renderFinalClips(outputs) {
   await access(REMOTION_CLI, constants.R_OK);
+  const tuning = runtimeTuning();
   const outputDir = join(REPO_ROOT, "输出/最终成片");
   await mkdir(outputDir, { recursive: true });
   for (const { outputFilename } of outputs) {
@@ -205,6 +210,10 @@ async function renderFinalClips(outputs) {
       JSON.stringify({ dataFile }),
       "--codec",
       "h264",
+      "--concurrency",
+      String(tuning.renderConcurrency),
+      "--hardware-acceleration",
+      tuning.hardwareAcceleration,
       "--overwrite",
     ]);
     await runInherited(invocation.command, invocation.args);

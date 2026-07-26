@@ -12,6 +12,7 @@ description: 从一段已保存的本地直播录像中筛选、审核并制作 
 
 - 只使用 `输入/媒体素材/直播录像/` 中用户指定的一段录像。
 - 只用本地 Whisper.cpp，并复用指纹匹配的逐字稿。
+- 全片初稿固定使用 `small`；`medium` 仅在 Studio 批准并锁定连续区间后，依次重转该区间的派生母版原声轨。`large-v3-turbo` 只用于本地文本模型标出的风险句前后不超过 30 秒的上下文。16GB 设备上三种转写均不得与 Studio 或渲染并行执行。
 - 默认用 90 秒评分窗口、60 秒步长覆盖完整原片时间轴。
 - 每个窗口都必须完成六维评分；保留线为总分严格大于 85/100。
 - 候选数量不设上限，不得因为已经找到若干条高分候选而提前停止评分。
@@ -42,15 +43,21 @@ description: 从一段已保存的本地直播录像中筛选、审核并制作 
    候选后，才能 `--confirm-studio`。
 9. 运行 `npm run clips:review -- apply ...`。每个已批准区间生成独立
    派生母版和重映射逐字稿，并立即锁定时长。
-10. 只用窄审校文件修正确定的 Whisper 错字和专有名词。保留原话，
-   不确定内容记入 `ambiguities`。
-11. 运行 `npm run clips:video-data -- --plan <approved-clips.json>`。在 Studio
-   打开 `Workflow > LivestreamClipVisualReview`，检查全部已批准切片的人脸、字幕、
-   9:16 居中裁切、人脸和字幕安全区。
-12. 实际查看检查图后运行 `npm run clips:visual-review -- mark-stills`。
-13. 只有用户明确确认最终视觉后，才运行
-   `npm run clips:visual-review -- confirm-studio`。
-14. 读取 `skills/dbs-xhs-title/SKILL.md`，根据每条已批准切片的实际
+10. 对每个已锁定的派生母版使用本地 Whisper.cpp `medium` 重转写，并保留
+    `small` 重映射稿和 `medium` 原始稿及时间码。本地文本模型必须扫描全部片段，
+    标记两份结果差异、术语近音、异常重复或断句、敏感表达、人名、数字和上下文
+    语义突变；检测不得直接生成字幕文本。
+11. 每个风险标记必须触发同一原声轨、前后不超过 30 秒的 `large-v3-turbo` 转写。
+    三份转写一致时自动采纳；不一致时，本地文本模型只能在已有转写结果和已批准
+    术语表候选中裁决。禁止自由润色、整句改写或生成第三种说法；无法裁决时保留
+    `medium` 结果，并将全部候选、检测标签、裁决理由和风险写入 `ambiguities`。
+12. 运行 `npm run clips:video-data -- --plan <approved-clips.json>`。在 Studio
+    打开 `Workflow > LivestreamClipVisualReview`，检查全部已批准切片的人脸、字幕、
+    9:16 居中裁切、人脸和字幕安全区。
+13. 实际查看检查图后运行 `npm run clips:visual-review -- mark-stills`。
+14. 只有用户明确确认最终视觉后，才运行
+    `npm run clips:visual-review -- confirm-studio`。
+15. 读取 `skills/dbs-xhs-title/SKILL.md`，根据每条已批准切片的实际
     内容提炼最终内容标题，并交付可直接阅读的标题确认稿。候选审核
     标题只能作为参考，不得直接当作最终标题。确认稿每条列出
     切片 ID、推荐标题、公式编号和一句内容依据。

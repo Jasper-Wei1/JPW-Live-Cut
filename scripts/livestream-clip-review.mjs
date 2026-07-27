@@ -206,11 +206,11 @@ export function remapTranscriptToRange(
       sourceEndMs,
       continuousSourceRange: true,
       playbackSegments: segments,
-      timestampPolicy: "mapped-from-original-whisper",
+      timestampPolicy: "mapped-from-original-transcript",
     },
     warnings: [
       ...(transcript.warnings ?? []),
-      "逐字稿时间戳已映射到用户确认的直播连续区间，没有重新运行 Whisper。",
+      "逐字稿时间戳已映射到用户确认的直播连续区间，没有重新运行语音识别。",
     ],
   };
 }

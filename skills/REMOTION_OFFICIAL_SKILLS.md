@@ -15,6 +15,6 @@
 
 安装日期：`2026-07-19`
 
-这些 Skill 只提供 Remotion 技术规范。项目路径、输入来源、本地 Whisper.cpp、
+这些 Skill 只提供 Remotion 技术规范。项目路径、输入来源、本地 Qwen 默认引擎、
 主音频、时间轴锁定、Studio 确认和渲染门禁仍由 `AGENTS.md`、项目 Skill 与
 数据 schema 决定。

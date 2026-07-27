@@ -1,6 +1,6 @@
 # 本地直播精彩切片工作流
 
-这是一个只处理已保存直播录像的本地仓库。它使用本地 Whisper.cpp 完成带时间码的逐字稿，覆盖完整原片时间轴筛选候选，并用 Remotion 在 Studio 中完成两次视觉确认后渲染 9:16 成片。
+这是一个只处理已保存直播录像的本地仓库。它使用本地 `Qwen3-ASR-0.6B + Qwen3-ForcedAligner-0.6B` 完成带真实对齐时间码的逐字稿，覆盖完整原片时间轴筛选候选，并用 Remotion 在 Studio 中完成两次视觉确认后渲染 9:16 成片。
 
 原始声音不会上传到云端语音服务；原直播录像始终不可修改。
 
@@ -13,18 +13,16 @@
 
 ## 安装
 
-macOS 使用 Node.js 20+ 和 Xcode Command Line Tools：
+默认流程已在 macOS MPS 上验证，需要 Node.js 20+ 和 Python 3.10+：
 
 ```bash
 npm run setup
 npm run doctor
 ```
 
-首次安装会下载依赖、编译本地 Whisper.cpp，并下载默认的 `small` 中文模型，约 500 MB。
+首次安装会下载 Remotion 依赖、独立 Qwen 环境以及两份本地模型，约 3.5 GB。正常转录强制离线，模型和环境都位于 `实验/qwen-asr/`。
 
-Windows 10/11 x64 用户使用 [Windows 快速开始](Windows/Windows快速开始.md)，双击 `Windows/install.cmd` 完成安装。Windows 使用官方 Whisper 二进制，不需要安装 Make、Xcode 或 curl。
-
-面向客户交付时，请从 [最新 Release](https://github.com/Jasper-Wei1/JPW-Live-Cut/releases/latest) 下载 `Source code (zip)`，解压到 `D:\JPWClips` 这类短英文路径，避免 OneDrive、桌面、中文用户名路径和过深目录。安装完成后运行 `npm run doctor`；Windows 在整片转录前会自动检查原片开头、中段和结尾各 30 秒，任一检查不合格时不会启动整片转录。
+Windows 已提供 Qwen 本地 CPU 代码路径，但尚未完成实机验证，不能将其视为已支持。部署和冒烟检查见 [Windows Qwen 本地转录](Windows/Qwen本地转录.md)。保留的 Whisper.cpp 只可通过显式 `npm run whisper:setup` 和 `npm run whisper:transcribe` 用作回退，不参与默认字幕质量结论。
 
 ## 制作一场直播的精彩切片
 
@@ -40,7 +38,7 @@ Windows 10/11 x64 用户使用 [Windows 快速开始](Windows/Windows快速开�
 
 ```text
 不可修改的直播原片
--> 本地 Whisper.cpp 逐字稿
+-> 本地 Qwen ASR + ForcedAligner 逐字稿
 -> 覆盖 100% 时间轴的六维评分
 -> 候选审核
 -> Studio 确认连续源区间

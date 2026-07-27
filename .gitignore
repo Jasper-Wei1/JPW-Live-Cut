@@ -28,5 +28,12 @@
 输出/检查图/*
 输出/最终成片/*
 
+# Qwen ASR runtime, model weights, and generated evidence remain local.
+实验/qwen-asr/.venv*/
+实验/qwen-asr/.venv*
+实验/qwen-asr/缓存/
+实验/qwen-asr/结果/
+实验/qwen-asr/**/__pycache__/
+
 !**/README.md
 !**/.gitkeep

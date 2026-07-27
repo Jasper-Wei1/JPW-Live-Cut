@@ -16,6 +16,9 @@ if errorlevel 1 goto :failed
 call npm run doctor
 if errorlevel 1 goto :failed
 
+call npm run qwen:test
+if errorlevel 1 goto :failed
+
 echo.
 echo Installation completed. Run open-studio.cmd to start review.
 pause

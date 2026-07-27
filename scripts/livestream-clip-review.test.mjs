@@ -81,7 +81,7 @@ test("全部候选明确处理后才能通过 Studio 门禁", () => {
   assert.ok(plan.preview.approvedAt);
 });
 
-test("从原始 Whisper 时间轴映射单个连续切片逐字稿", () => {
+test("从原始逐字稿时间轴映射单个连续切片逐字稿", () => {
   const transcript = {
     source: "输入/直播.mp4",
     durationMs: 120000,
@@ -112,6 +112,11 @@ test("从原始 Whisper 时间轴映射单个连续切片逐字稿", () => {
   assert.equal(mapped.utterances[0].startMs, 0);
   assert.equal(mapped.tokens[0].utteranceIndex, 0);
   assert.equal(mapped.clipExtraction.continuousSourceRange, true);
+  assert.equal(
+    mapped.clipExtraction.timestampPolicy,
+    "mapped-from-original-transcript",
+  );
+  assert.match(mapped.warnings.at(-1), /没有重新运行语音识别/);
   assert.deepEqual(mapped.clipExtraction.playbackSegments, [
     {
       type: "body",

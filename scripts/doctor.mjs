@@ -1,43 +1,35 @@
 #!/usr/bin/env node
 
-import { existsSync, statSync } from "node:fs";
+import { existsSync } from "node:fs";
 import { spawnSync } from "node:child_process";
 import { join, resolve } from "node:path";
-import {
-  commandLocator,
-  remotionCliPath,
-  requiredPlatformTools,
-  whisperDirectory,
-  whisperExecutableName,
-} from "./platform.mjs";
 
 const root = resolve(import.meta.dirname, "..");
-const whisperDir = whisperDirectory(root);
 const checks = [];
 
 const add = (name, ok, detail) => checks.push({ name, ok, detail });
 const nodeMajor = Number(process.versions.node.split(".")[0]);
+const qwenPythonPath = join(root, "实验/qwen-asr/.venv/bin/python");
+const qwenPython = pythonVersion(qwenPythonPath);
+const systemPython = pythonVersion("python3");
 
 add("Node.js 20+", nodeMajor >= 20, process.version);
 add(
-  "受支持的平台",
-  process.platform !== "win32" || process.arch === "x64",
-  process.platform === "win32" ? `Windows ${process.arch}` : process.platform,
+  "Qwen 默认平台",
+  process.platform === "darwin",
+  process.platform === "darwin" ? "macOS (MPS)" : "当前 Qwen 默认流程只验证 macOS",
 );
-if (process.platform === "win32") {
+if (qwenPython) {
   add(
-    "Windows 仓库路径",
-    /^[\x00-\x7F]*$/u.test(root),
-    "请将仓库放在只含英文字母、数字和常见符号的路径，例如 D:\\JPWClips",
+    "本地 Qwen 环境 (Python 3.10+)",
+    qwenPython.major === 3 && qwenPython.minor >= 10,
+    qwenPython.text,
   );
-}
-for (const tool of requiredPlatformTools()) {
+} else {
   add(
-    tool === "powershell.exe" ? "Windows PowerShell" : "Make",
-    commandExists(tool),
-    tool === "powershell.exe"
-      ? "用于安装 Windows Whisper 二进制"
-      : "用于编译本地 Whisper.cpp",
+    "Python 3.10+（首次安装需要）",
+    systemPython?.major === 3 && systemPython.minor >= 10,
+    systemPython?.text || "可通过 QWEN_EXPERIMENT_PYTHON 指定本地解释器",
   );
 }
 add(
@@ -47,18 +39,18 @@ add(
 );
 add(
   "项目依赖",
-  existsSync(remotionCliPath(join(root, "引擎/remotion"))),
+  existsSync(join(root, "引擎/remotion/node_modules/.bin/remotion")),
   "缺失时运行 npm run setup",
 );
 add(
-  "本地 Whisper.cpp",
-  existsSync(join(whisperDir, whisperExecutableName())),
-  "由 npm run setup 安装",
+  "Qwen3-ASR-0.6B",
+  existsSync(join(root, "实验/qwen-asr/缓存/模型/Qwen3-ASR-0.6B/config.json")),
+  "本地模型",
 );
 add(
-  "Whisper small 模型",
-  fileHasSize(join(whisperDir, "ggml-small.bin"), 487601967),
-  "约 488 MB",
+  "Qwen3-ForcedAligner-0.6B",
+  existsSync(join(root, "实验/qwen-asr/缓存/模型/Qwen3-ForcedAligner-0.6B/config.json")),
+  "本地模型",
 );
 add(
   "直播原片输入目录",
@@ -70,12 +62,15 @@ for (const check of checks) {
   console.log(`${check.ok ? "正常" : "缺失"}  ${check.name} - ${check.detail}`);
 }
 
-function fileHasSize(path, expectedSize) {
-  return existsSync(path) && statSync(path).size === expectedSize;
-}
-
-function commandExists(command) {
-  return spawnSync(commandLocator(), [command], { stdio: "ignore" }).status === 0;
+function pythonVersion(command) {
+  const result = spawnSync(command, ["-c", "import sys; print('.'.join(map(str, sys.version_info[:3])))"], {
+    encoding: "utf8",
+  });
+  if (result.status !== 0) return null;
+  const text = result.stdout.trim();
+  const match = /^(\d+)\.(\d+)\.(\d+)$/u.exec(text);
+  if (!match) return null;
+  return { major: Number(match[1]), minor: Number(match[2]), text: `python3 ${text}` };
 }
 
 if (checks.some((check) => !check.ok)) {

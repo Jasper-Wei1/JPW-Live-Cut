@@ -5,11 +5,12 @@ import { access } from "node:fs/promises";
 import { constants } from "node:fs";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
+import { joinPythonPath, qwenVenvPython } from "./qwen-runtime-paths.mjs";
 
 const scriptDir = dirname(fileURLToPath(import.meta.url));
 const experimentDir = resolve(scriptDir, "..");
 const repoRoot = resolve(experimentDir, "../..");
-const python = join(experimentDir, ".venv", "bin", "python");
+const python = qwenVenvPython(join(experimentDir, ".venv"));
 
 try {
   await access(python, constants.X_OK);
@@ -22,9 +23,7 @@ await new Promise((resolveRun, rejectRun) => {
     cwd: repoRoot,
     env: {
       ...process.env,
-      PYTHONPATH: [join(experimentDir, "scripts"), process.env.PYTHONPATH]
-        .filter(Boolean)
-        .join(":"),
+      PYTHONPATH: joinPythonPath([join(experimentDir, "scripts"), process.env.PYTHONPATH]),
     },
     stdio: "inherit",
   });

@@ -16,3 +16,6 @@ transcriber and retains an isolated evaluation harness for the official local
   fallback through `npm run whisper:transcribe`.
 - The forced aligner receives sequential audio chunks no longer than 240
   seconds. Persist chunk boundaries and timestamp provenance with every run.
+- Windows uses the same official local runtime with CPU `float32`; its support
+  status remains pending a native setup, smoke-transcription, and full-media
+  verification. Do not label it supported before those records exist.

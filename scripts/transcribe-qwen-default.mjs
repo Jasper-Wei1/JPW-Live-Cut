@@ -6,12 +6,13 @@ import { constants } from "node:fs";
 import { tmpdir } from "node:os";
 import { basename, dirname, extname, join, relative, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
+import { qwenVenvPython, remotionInvocation } from "../实验/qwen-asr/scripts/qwen-runtime-paths.mjs";
 
 const scriptDir = dirname(fileURLToPath(import.meta.url));
 const repoRoot = resolve(scriptDir, "..");
 const experimentDir = join(repoRoot, "实验", "qwen-asr");
 const remotionDir = join(repoRoot, "引擎", "remotion");
-const python = join(experimentDir, ".venv", "bin", "python");
+const python = qwenVenvPython(join(experimentDir, ".venv"));
 const runner = join(experimentDir, "scripts", "run_local_qwen_asr.py");
 const cacheDir = join(experimentDir, "缓存");
 const modelsDir = join(cacheDir, "模型");
@@ -109,15 +110,17 @@ Whisper.cpp 回退：npm run whisper:transcribe -- --input <media> --name <name>
 }
 
 async function extractAudio(input, output) {
-  await run(join(remotionDir, "node_modules/.bin/remotion"), [
+  const invocation = remotionInvocation(remotionDir, [
     "ffmpeg", "-y", "-v", "error", "-i", input, "-vn", "-ac", "1", "-ar", "16000", "-c:a", "pcm_s16le", output,
   ]);
+  await run(invocation.command, invocation.args);
 }
 
 async function probeMediaDuration(input) {
-  const output = await runCapture(join(remotionDir, "node_modules/.bin/remotion"), [
+  const invocation = remotionInvocation(remotionDir, [
     "ffprobe", "-v", "error", "-show_entries", "format=duration", "-of", "json", input,
   ]);
+  const output = await runCapture(invocation.command, invocation.args);
   const durationMs = Math.round(Number(JSON.parse(output).format?.duration) * 1000);
   if (!Number.isFinite(durationMs) || durationMs <= 0) {
     throw new Error("无法确定原片时长，不能启动 Qwen 转录。");

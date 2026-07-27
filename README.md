@@ -22,7 +22,7 @@ npm run doctor
 
 首次安装会下载 Remotion 依赖、独立 Qwen 环境以及两份本地模型，约 3.5 GB。正常转录强制离线，模型和环境都位于 `实验/qwen-asr/`。
 
-Windows 尚未验证 Qwen 默认流程，不能将其视为已支持。保留的 Whisper.cpp 只可通过显式 `npm run whisper:setup` 和 `npm run whisper:transcribe` 用作回退，不参与默认字幕质量结论。
+Windows 已提供 Qwen 本地 CPU 代码路径，但尚未完成实机验证，不能将其视为已支持。部署和冒烟检查见 [Windows Qwen 本地转录](Windows/Qwen本地转录.md)。保留的 Whisper.cpp 只可通过显式 `npm run whisper:setup` 和 `npm run whisper:transcribe` 用作回退，不参与默认字幕质量结论。
 
 ## 制作一场直播的精彩切片
 

@@ -7,16 +7,20 @@ import argparse
 import json
 import os
 import platform
-import resource
 import sys
 import time
 import traceback
 import wave
 from datetime import datetime, timezone
 from pathlib import Path
-from typing import Any
+from typing import Any, Optional
 
 import numpy as np
+
+try:
+    import resource
+except ImportError:
+    resource = None
 
 from qwen_normalization import build_transcript, calculate_chunk_coverage, serialize_timestamp
 
@@ -265,7 +269,9 @@ def build_metrics(*, torch, device: str, dtype: str, chunks, audio_duration_ms, 
     }
 
 
-def peak_rss_bytes() -> int:
+def peak_rss_bytes() -> Optional[int]:
+    if resource is None:
+        return None
     # macOS reports ru_maxrss in bytes; Linux reports KiB.
     value = resource.getrusage(resource.RUSAGE_SELF).ru_maxrss
     return int(value if sys.platform == "darwin" else value * 1024)

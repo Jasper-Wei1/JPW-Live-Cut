@@ -3,21 +3,29 @@
 import { existsSync } from "node:fs";
 import { spawnSync } from "node:child_process";
 import { join, resolve } from "node:path";
+import {
+  bootstrapPythonCandidates,
+  qwenVenvPython,
+} from "../实验/qwen-asr/scripts/qwen-runtime-paths.mjs";
 
 const root = resolve(import.meta.dirname, "..");
 const checks = [];
 
 const add = (name, ok, detail) => checks.push({ name, ok, detail });
 const nodeMajor = Number(process.versions.node.split(".")[0]);
-const qwenPythonPath = join(root, "实验/qwen-asr/.venv/bin/python");
+const systemPython = bootstrapPythonCandidates().map(pythonVersion).find(Boolean);
+const qwenPythonPath = qwenVenvPython(join(root, "实验/qwen-asr/.venv"));
 const qwenPython = pythonVersion(qwenPythonPath);
-const systemPython = pythonVersion("python3");
 
 add("Node.js 20+", nodeMajor >= 20, process.version);
 add(
-  "Qwen 默认平台",
-  process.platform === "darwin",
-  process.platform === "darwin" ? "macOS (MPS)" : "当前 Qwen 默认流程只验证 macOS",
+  "Qwen 运行平台",
+  ["darwin", "win32"].includes(process.platform),
+  process.platform === "darwin"
+    ? "macOS (MPS)"
+    : process.platform === "win32"
+      ? "Windows (CPU，待实机验证)"
+      : "当前仅提供 macOS MPS 与 Windows CPU 路径",
 );
 if (qwenPython) {
   add(
@@ -39,7 +47,7 @@ add(
 );
 add(
   "项目依赖",
-  existsSync(join(root, "引擎/remotion/node_modules/.bin/remotion")),
+  existsSync(join(root, "引擎/remotion/node_modules/@remotion/cli/remotion-cli.js")),
   "缺失时运行 npm run setup",
 );
 add(
@@ -70,7 +78,7 @@ function pythonVersion(command) {
   const text = result.stdout.trim();
   const match = /^(\d+)\.(\d+)\.(\d+)$/u.exec(text);
   if (!match) return null;
-  return { major: Number(match[1]), minor: Number(match[2]), text: `python3 ${text}` };
+  return { major: Number(match[1]), minor: Number(match[2]), text: `${command} ${text}` };
 }
 
 if (checks.some((check) => !check.ok)) {

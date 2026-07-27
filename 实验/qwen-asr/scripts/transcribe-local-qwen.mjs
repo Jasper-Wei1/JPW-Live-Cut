@@ -5,12 +5,13 @@ import { access, mkdir, rm, stat } from "node:fs/promises";
 import { constants } from "node:fs";
 import { basename, dirname, extname, join, relative, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
+import { qwenVenvPython, remotionInvocation } from "./qwen-runtime-paths.mjs";
 
 const scriptDir = dirname(fileURLToPath(import.meta.url));
 const experimentDir = resolve(scriptDir, "..");
 const repoRoot = resolve(experimentDir, "../..");
 const remotionDir = join(repoRoot, "引擎", "remotion");
-const python = join(experimentDir, ".venv", "bin", "python");
+const python = qwenVenvPython(join(experimentDir, ".venv"));
 const runner = join(scriptDir, "run_local_qwen_asr.py");
 const cacheDir = join(experimentDir, "缓存");
 const modelsDir = join(cacheDir, "模型");
@@ -114,8 +115,7 @@ function printHelp() {
 }
 
 async function extractAudio(input, output) {
-  const remotion = join(remotionDir, "node_modules/.bin/remotion");
-  await run(remotion, [
+  const invocation = remotionInvocation(remotionDir, [
     "ffmpeg",
     "-y",
     "-v",
@@ -131,6 +131,7 @@ async function extractAudio(input, output) {
     "pcm_s16le",
     output,
   ]);
+  await run(invocation.command, invocation.args);
 }
 
 function offlineEnvironment() {

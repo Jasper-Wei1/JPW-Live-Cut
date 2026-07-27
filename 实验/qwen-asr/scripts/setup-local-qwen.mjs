@@ -5,12 +5,17 @@ import { access, mkdir } from "node:fs/promises";
 import { constants } from "node:fs";
 import { dirname, join, relative, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
+import {
+  bootstrapPythonCandidates,
+  qwenVenvCommand,
+  qwenVenvPython,
+} from "./qwen-runtime-paths.mjs";
 
 const scriptDir = dirname(fileURLToPath(import.meta.url));
 const experimentDir = resolve(scriptDir, "..");
 const repoRoot = resolve(experimentDir, "../..");
 const venvDir = join(experimentDir, ".venv");
-const python = join(venvDir, "bin", "python");
+const python = qwenVenvPython(venvDir);
 const cacheDir = join(experimentDir, "缓存");
 const modelsDir = join(cacheDir, "模型");
 const asrModelDir = join(modelsDir, "Qwen3-ASR-0.6B");
@@ -62,7 +67,7 @@ async function assertPython(command) {
 async function findBootstrapPython() {
   if (process.env.QWEN_EXPERIMENT_PYTHON) return process.env.QWEN_EXPERIMENT_PYTHON;
   const bundledPython = resolve(dirname(process.execPath), "../../python/bin/python3");
-  for (const candidate of [bundledPython, "python3.12", "/opt/homebrew/opt/python@3.12/bin/python3.12", "python3"]) {
+  for (const candidate of bootstrapPythonCandidates({ bundledPython })) {
     try {
       const version = await output(candidate, ["-c", "import sys; print('.'.join(map(str, sys.version_info[:2])))"]);
       const [major, minor] = version.trim().split(".").map(Number);
@@ -83,7 +88,7 @@ async function downloadModel(modelId, destination) {
   }
   await mkdir(destination, { recursive: true });
   console.log(`下载官方模型 ${modelId} 到 ${toRepoPath(destination)}`);
-  await run(join(venvDir, "bin", "modelscope"), [
+  await run(qwenVenvCommand(venvDir, "modelscope"), [
     "download",
     "--model",
     modelId,

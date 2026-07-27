@@ -23,7 +23,7 @@
 
 ## 硬性边界
 
-- 默认只使用本地 `Qwen3-ASR-0.6B + Qwen3-ForcedAligner-0.6B`，不得调用云端语音转写服务。本轮默认流程只验证 macOS MPS，不宣称 Windows 支持。
+- 默认只使用本地 `Qwen3-ASR-0.6B + Qwen3-ForcedAligner-0.6B`，不得调用云端语音转写服务。macOS 使用 MPS；Windows 使用 CPU `float32` 代码路径，必须通过本机安装、冒烟和完整媒体验证后才可标记为支持。
 - 全片初稿只运行一次 Qwen，覆盖完整原片时间轴，保留 ForcedAligner 原始时间戳、精度标记和标准化 `schemaVersion: 1` 输出；不得用文本润色结果替换原始逐字稿。
 - 每个经 Studio 明确批准并锁定的连续区间必须复用并重映射该 Qwen 时间轴；不得默认重新运行 Whisper、其他 ASR 模型或风险窗口转录。
 - 最终审校只能修正原声可明确验证的错字、专名和短小歧义；不确定内容必须写入 `ambiguities`，不得为流畅而改写、补句或猜测。

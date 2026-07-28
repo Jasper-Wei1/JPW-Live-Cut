@@ -1,15 +1,15 @@
 {
   "schemaVersion": 1,
-  "id": "jack-2026-07-22-qwen-clip-001",
+  "id": "livestream-clip-demo",
   "template": "livestream-clip-916",
-  "durationMs": 90000,
+  "durationMs": 32000,
   "masterVideo": {
-    "sourcePath": "工作区/派生媒体/直播切片/jack-2026-07-22-qwen/clip-001/master.mp4",
-    "asset": "generated/livestream-clips/jack-2026-07-22-qwen/clip-001/master.mp4"
+    "sourcePath": "引擎/remotion/public/demo/livestream-demo.mp4",
+    "asset": "demo/livestream-demo.mp4"
   },
   "masterTranscript": {
-    "sourcePath": "工作区/数据/已确认/jack-2026-07-22-qwen-clip-001-reviewed-transcript.json",
-    "asset": "generated/livestream-clips/jack-2026-07-22-qwen/clip-001/reviewed-transcript.json"
+    "sourcePath": "引擎/remotion/public/demo/livestream-demo-transcript.json",
+    "asset": "demo/livestream-demo-transcript.json"
   },
   "output": {
     "width": 1080,
@@ -45,10 +45,9 @@
     "cropToFill": true,
     "privacyMaskRequired": false,
     "assetPathsChecked": true,
-    "stillRendered": true,
+    "stillRendered": false,
     "previewMethod": "studio",
-    "previewApproved": true,
-    "readyToRender": true,
-    "previewApprovedAt": "2026-07-28T13:31:16.566Z"
+    "previewApproved": false,
+    "readyToRender": false
   }
 }

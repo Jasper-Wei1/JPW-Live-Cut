@@ -6,11 +6,15 @@ import { constants } from "node:fs";
 import { tmpdir } from "node:os";
 import { basename, dirname, extname, join, relative, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
-import { qwenVenvPython, remotionInvocation } from "../实验/qwen-asr/scripts/qwen-runtime-paths.mjs";
+import {
+  qwenRuntimeDirectory,
+  qwenVenvPython,
+  remotionInvocation,
+} from "../实验/qwen-asr/scripts/qwen-runtime-paths.mjs";
 
 const scriptDir = dirname(fileURLToPath(import.meta.url));
 const repoRoot = resolve(scriptDir, "..");
-const experimentDir = join(repoRoot, "实验", "qwen-asr");
+const experimentDir = qwenRuntimeDirectory(repoRoot);
 const remotionDir = join(repoRoot, "引擎", "remotion");
 const python = qwenVenvPython(join(experimentDir, ".venv"));
 const runner = join(experimentDir, "scripts", "run_local_qwen_asr.py");

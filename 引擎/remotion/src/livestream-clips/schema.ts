@@ -40,7 +40,7 @@ export const ClipReviewPlanSchema = z
       height: z.literal(1920),
       fps: z.literal(30),
       durationMs: z.number().int().positive(),
-      method: z.literal("studio"),
+      method: z.enum(["studio", "transcript"]),
       status: z.enum(["pending", "approved"]),
       approvedAt: z.string().nullable(),
     }),

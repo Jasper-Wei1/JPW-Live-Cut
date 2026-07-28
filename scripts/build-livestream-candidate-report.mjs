@@ -18,7 +18,7 @@ export const SCORE_DIMENSIONS = {
 
 export const SCORE_THRESHOLD_EXCLUSIVE = 85;
 export const DEFAULT_WINDOW_MS = 90000;
-export const DEFAULT_STRIDE_MS = 60000;
+export const DEFAULT_STRIDE_MS = 30000;
 
 export function createCoverageRanges(
   durationMs,

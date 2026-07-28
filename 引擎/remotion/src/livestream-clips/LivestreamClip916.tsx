@@ -1,4 +1,5 @@
 import { fitText } from "@remotion/layout-utils";
+import type { Caption } from "@remotion/captions";
 import { useCallback, useEffect, useState } from "react";
 import {
   AbsoluteFill,
@@ -17,11 +18,7 @@ type Transcript = {
   utterances: Array<{ text: string; startMs: number; endMs: number }>;
 };
 
-type CaptionCue = {
-  text: string;
-  startMs: number;
-  endMs: number;
-};
+type CaptionCue = Caption;
 
 export const LivestreamClip916: React.FC<
   LivestreamClipCompositionProps
@@ -61,8 +58,9 @@ const LivestreamCaptions: React.FC<{ data: LivestreamClipData }> = ({
       }
       const transcript = (await response.json()) as Transcript;
       setCaptions(
-        transcript.utterances.flatMap((utterance) =>
-          splitUtterance(utterance, data.captions.maxCharsPerPage),
+        groupUtterances(
+          transcript.utterances,
+          data.captions.maxCharsPerPage,
         ),
       );
       continueRender(handle);
@@ -147,26 +145,42 @@ const CaptionText: React.FC<{
   );
 };
 
-const splitUtterance = (
-  utterance: { text: string; startMs: number; endMs: number },
+const groupUtterances = (
+  utterances: Array<{ text: string; startMs: number; endMs: number }>,
   maxChars: number,
 ): CaptionCue[] => {
-  const characters = Array.from(utterance.text.trim());
-  const chunks: string[] = [];
-  for (let index = 0; index < characters.length; index += maxChars) {
-    chunks.push(characters.slice(index, index + maxChars).join(""));
+  const captions: CaptionCue[] = [];
+  let pending: CaptionCue | null = null;
+
+  const commit = () => {
+    if (pending) captions.push(pending);
+    pending = null;
+  };
+
+  for (const utterance of utterances) {
+    const text = utterance.text.trim();
+    if (!text) continue;
+    const startsAfterPause =
+      pending !== null && utterance.startMs - pending.endMs > 450;
+    const exceedsPage =
+      pending !== null && Array.from(`${pending.text}${text}`).length > maxChars;
+    if (startsAfterPause || exceedsPage) commit();
+
+    if (!pending) {
+      pending = {
+        text,
+        startMs: utterance.startMs,
+        endMs: utterance.endMs,
+        timestampMs: null,
+        confidence: null,
+      };
+    } else {
+      pending.text += text;
+      pending.endMs = utterance.endMs;
+    }
+
+    if (/[.!?。！？]$/u.test(text)) commit();
   }
-  return chunks.map((text, index) => ({
-    text,
-    startMs:
-      utterance.startMs +
-      Math.round(
-        ((utterance.endMs - utterance.startMs) * index) / chunks.length,
-      ),
-    endMs:
-      utterance.startMs +
-      Math.round(
-        ((utterance.endMs - utterance.startMs) * (index + 1)) / chunks.length,
-      ),
-  }));
+  commit();
+  return captions;
 };

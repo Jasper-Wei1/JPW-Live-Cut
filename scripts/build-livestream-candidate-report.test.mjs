@@ -67,6 +67,10 @@ const auditFixture = (intervals, durationMs = 210000) => ({
 });
 
 test("生成覆盖完整时间轴的重叠评分窗口", () => {
+  assert.deepEqual(createCoverageRanges(120000), [
+    { startMs: 0, endMs: 90000 },
+    { startMs: 30000, endMs: 120000 },
+  ]);
   assert.deepEqual(createCoverageRanges(210000, 90000, 60000), [
     { startMs: 0, endMs: 90000 },
     { startMs: 60000, endMs: 150000 },
@@ -79,7 +83,7 @@ test("生成覆盖完整时间轴的重叠评分窗口", () => {
     fingerprint: { size: 10, mtimeMs: 20 },
   });
   assert.equal(audit.coverage.coveragePercent, 100);
-  assert.equal(audit.intervals.length, 3);
+  assert.equal(audit.intervals.length, 5);
   assert.equal(audit.status, "pending-scoring");
 });
 

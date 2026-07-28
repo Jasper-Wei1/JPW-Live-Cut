@@ -5,12 +5,16 @@ import { access } from "node:fs/promises";
 import { constants } from "node:fs";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
-import { joinPythonPath, qwenVenvPython } from "./qwen-runtime-paths.mjs";
+import {
+  joinPythonPath,
+  qwenRuntimeDirectory,
+  qwenVenvPython,
+} from "./qwen-runtime-paths.mjs";
 
 const scriptDir = dirname(fileURLToPath(import.meta.url));
 const experimentDir = resolve(scriptDir, "..");
 const repoRoot = resolve(experimentDir, "../..");
-const python = qwenVenvPython(join(experimentDir, ".venv"));
+const python = qwenVenvPython(join(qwenRuntimeDirectory(repoRoot), ".venv"));
 
 try {
   await access(python, constants.X_OK);

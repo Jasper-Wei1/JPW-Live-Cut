@@ -99,11 +99,11 @@ async function main() {
   const reviewedTranscripts = {};
 
   for (const candidate of approved) {
-    const sourcePath = join(
+    const reviewedSourcePath = join(
       REPO_ROOT,
       `工作区/数据/已确认/${plan.id}-${candidate.id}-reviewed-transcript.json`,
     );
-    const publicPath = join(
+    const reviewedPublicPath = join(
       REMOTION_DIR,
       `public/generated/livestream-clips/${plan.id}/${candidate.id}/reviewed-transcript.json`,
     );
@@ -111,12 +111,12 @@ async function main() {
       resolve(REPO_ROOT, candidate.outputs.masterVideo),
       constants.R_OK,
     );
-    await access(sourcePath, constants.R_OK);
-    await mkdir(dirname(publicPath), { recursive: true });
-    await copyFile(sourcePath, publicPath);
+    await access(reviewedSourcePath, constants.R_OK);
+    await mkdir(dirname(reviewedPublicPath), { recursive: true });
+    await copyFile(reviewedSourcePath, reviewedPublicPath);
     reviewedTranscripts[candidate.id] = {
-      sourcePath: toRepoPath(sourcePath),
-      asset: toPublicPath(publicPath),
+      sourcePath: toRepoPath(reviewedSourcePath),
+      asset: toPublicPath(reviewedPublicPath),
     };
   }
 
@@ -141,11 +141,16 @@ async function main() {
     batch,
     args.force,
   );
-  await writeJson(
-    join(REMOTION_DIR, "public/video-data/livestream-clip-demo.json"),
-    clips[0],
-    args.force,
+  const demoDataPath = join(
+    REMOTION_DIR,
+    "public/video-data/livestream-clip-demo.json",
   );
+  try {
+    await access(demoDataPath, constants.F_OK);
+  } catch (error) {
+    if (error.code !== "ENOENT") throw error;
+    await writeJson(demoDataPath, clips[0], false);
+  }
   console.log(`已生成 ${clips.length} 条 9:16 视频配置。`);
   console.log("在 Studio 中选择 Workflow > LivestreamClipVisualReview。");
 }

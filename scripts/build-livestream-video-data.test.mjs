@@ -47,3 +47,43 @@ test("最终切片配置不携带候选审核元数据", () => {
   assert.equal(data.durationMs, 55000);
   assert.equal(data.timelinePolicy.sourceRangeContinuous, true);
 });
+
+test("视频数据只读取经大模型校核后的逐字稿", () => {
+  const plan = {
+    schemaVersion: 1,
+    workflow: "clip-extraction-review",
+    id: "test-live",
+    preview: { status: "approved" },
+    timeline: { status: "locked" },
+    candidates: [
+      {
+        id: "clip-001",
+        reviewStatus: "approved",
+        durationMs: 55000,
+        timeline: { status: "locked", durationMs: 55000 },
+        outputs: {
+          masterVideo: "工作区/派生媒体/master.mp4",
+          masterAsset: "generated/master.mp4",
+        },
+      },
+    ],
+  };
+  const [data] = buildLivestreamVideoData({
+    plan,
+    reviewedTranscripts: {
+      "clip-001": {
+        sourcePath: "工作区/数据/已确认/test-live-clip-001-reviewed-transcript.json",
+        asset: "generated/test-live/clip-001/reviewed-transcript.json",
+      },
+    },
+  });
+
+  assert.equal(
+    data.masterTranscript.sourcePath,
+    "工作区/数据/已确认/test-live-clip-001-reviewed-transcript.json",
+  );
+  assert.equal(
+    data.masterTranscript.asset,
+    "generated/test-live/clip-001/reviewed-transcript.json",
+  );
+});

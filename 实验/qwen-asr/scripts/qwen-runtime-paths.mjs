@@ -2,6 +2,12 @@ import { join } from "node:path";
 
 export const isWindows = (platform = process.platform) => platform === "win32";
 
+export function qwenRuntimeDirectory(repoRoot, platform = process.platform) {
+  return isWindows(platform)
+    ? join(repoRoot, ".jpw-cache", "qwen-asr")
+    : join(repoRoot, "实验", "qwen-asr");
+}
+
 export function qwenVenvPython(venvDir, platform = process.platform) {
   return join(
     venvDir,

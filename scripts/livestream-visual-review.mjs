@@ -112,6 +112,11 @@ async function main() {
   const batchPath = resolve(process.cwd(), args.batch || DEFAULT_BATCH);
   const batch = JSON.parse(await readFile(batchPath, "utf8"));
 
+  if (args.action === "render-stills") {
+    await renderRepresentativeStills(batch, args.stillDir);
+    return;
+  }
+
   if (args.action === "mark-stills") {
     const stillDir = resolve(
       process.cwd(),
@@ -152,7 +157,39 @@ async function main() {
     await renderFinalClips(outputs);
     return;
   }
-  throw new Error("用法：mark-stills、confirm-studio 或 render。");
+  throw new Error("用法：render-stills、mark-stills、confirm-studio 或 render。");
+}
+
+async function renderRepresentativeStills(batch, stillDirArg) {
+  await access(REMOTION_CLI, constants.R_OK);
+  const stillDir = resolve(
+    process.cwd(),
+    stillDirArg || "输出/检查图/直播切片最终视觉审核",
+  );
+  await mkdir(stillDir, { recursive: true });
+  for (const clip of batch.clips) {
+    const clipId = clip.id.slice(batch.id.length + 1);
+    const stillPath = join(stillDir, `${clipId}.png`);
+    try {
+      await access(stillPath, constants.F_OK);
+      throw new Error(`检查图已存在，不覆盖：${toRepoPath(stillPath)}`);
+    } catch (error) {
+      if (error.code !== "ENOENT") throw error;
+    }
+    const invocation = remotionInvocation(REMOTION_DIR, [
+      "still",
+      "LivestreamClip916",
+      stillPath,
+      "--props",
+      JSON.stringify({ dataFile: `video-data/${clip.id}.json` }),
+      "--frame",
+      "900",
+    ]);
+    await runInherited(invocation.command, invocation.args);
+    const rendered = await stat(stillPath);
+    if (rendered.size === 0) throw new Error(`检查图为空：${toRepoPath(stillPath)}`);
+  }
+  console.log(`已生成 ${batch.clips.length} 条代表性检查图。`);
 }
 
 async function persistBatch(batchPath, batch, copyConfirmed) {
@@ -260,6 +297,7 @@ function parseArgs(argv) {
     else if (arg === "--titles") result.titles = argv[++index];
     else if (arg === "--help" || arg === "-h") {
       console.log(`用法：
+  npm run clips:visual-review -- render-stills [--still-dir <dir>]
   npm run clips:visual-review -- mark-stills [--still-dir <dir>]
   npm run clips:visual-review -- confirm-studio
   npm run clips:visual-review -- render --titles <approved-content-titles.json>

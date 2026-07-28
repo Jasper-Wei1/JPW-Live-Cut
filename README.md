@@ -1,6 +1,6 @@
 # 本地直播精彩切片工作流
 
-这是一个只处理已保存直播录像的本地仓库。它使用本地 `Qwen3-ASR-0.6B + Qwen3-ForcedAligner-0.6B` 完成带真实对齐时间码的逐字稿，覆盖完整原片时间轴筛选候选，并用 Remotion 在 Studio 中完成两次视觉确认后渲染 9:16 成片。
+这是一个只处理已保存直播录像的本地仓库。它使用本地 `Qwen3-ASR-0.6B + Qwen3-ForcedAligner-0.6B` 完成带真实对齐时间码的逐字稿，覆盖完整原片时间轴筛选候选；用户确认逐字稿切点和字幕后，再在 Remotion Studio 确认最终 9:16 视觉并渲染成片。
 
 原始声音不会上传到云端语音服务；原直播录像始终不可修改。
 
@@ -22,7 +22,7 @@ npm run doctor
 
 首次安装会下载 Remotion 依赖、独立 Qwen 环境以及两份本地模型，约 3.5 GB。正常转录强制离线，模型和环境都位于 `实验/qwen-asr/`。
 
-Windows 已提供 Qwen 本地 CPU 代码路径，但尚未完成实机验证，不能将其视为已支持。部署和冒烟检查见 [Windows Qwen 本地转录](Windows/Qwen本地转录.md)。保留的 Whisper.cpp 只可通过显式 `npm run whisper:setup` 和 `npm run whisper:transcribe` 用作回退，不参与默认字幕质量结论。
+Windows 用户可从 GitHub Releases 下载 Windows ZIP，解压到短英文路径后双击 `Windows/install.cmd`。ZIP 不包含模型、依赖或任何用户媒体；`npm run setup` 会在本机安装依赖并下载官方模型。Windows 已提供 Qwen 本地 CPU 代码路径，但尚未完成实机验证，不能将其视为已支持。部署和冒烟检查见 [Windows Qwen 本地转录](Windows/Qwen本地转录.md)。保留的 Whisper.cpp 只可通过显式 `npm run whisper:setup` 和 `npm run whisper:transcribe` 用作回退，不参与默认字幕质量结论。
 
 ## 制作一场直播的精彩切片
 

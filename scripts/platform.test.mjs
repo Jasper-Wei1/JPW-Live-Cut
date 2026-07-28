@@ -1,4 +1,5 @@
 import assert from "node:assert/strict";
+import { readFile } from "node:fs/promises";
 import test from "node:test";
 import { join } from "node:path";
 import {
@@ -77,4 +78,14 @@ test("根据当前可用处理器和内存推导运行时并发", () => {
       hardwareAcceleration: "if-possible",
     },
   );
+});
+
+test("Windows 原生冒烟显式验证 Whisper 回退而非默认 Qwen 入口", async () => {
+  const workflow = await readFile(
+    new URL("../.github/workflows/windows-native-smoke.yml", import.meta.url),
+    "utf8",
+  );
+  assert.match(workflow, /npm run whisper:setup -- --model tiny/u);
+  assert.match(workflow, /npm run whisper:transcribe -- --input .*--model tiny --language en/u);
+  assert.doesNotMatch(workflow, /npm run setup -- --model tiny/u);
 });

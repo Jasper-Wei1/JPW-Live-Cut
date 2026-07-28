@@ -1,5 +1,12 @@
 # 变更记录
 
+## 2026-07-29 - v1.1.1
+
+### Windows 原生冒烟修复
+
+- Windows 原生冒烟工作流改为显式调用 `whisper:setup` 与 `whisper:transcribe`，不再将旧的 Whisper 模型参数传给默认 Qwen 入口。
+- 新增回归测试，确保该工作流始终只验证明确请求的 Whisper 回退路径。
+
 ## 2026-07-28 - v1.1.0
 
 ### Qwen 审校工作流与 Windows 发布包

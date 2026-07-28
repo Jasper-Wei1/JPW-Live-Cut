@@ -16,12 +16,12 @@ jobs:
           cache: npm
           cache-dependency-path: 引擎/remotion/package-lock.json
       - run: npm ci --prefix 引擎/remotion
-      - run: npm run setup -- --model tiny
-      - name: Transcribe an audio-bearing fixture
+      - run: npm run whisper:setup -- --model tiny
+      - name: Transcribe an audio-bearing fixture with Whisper fallback
         shell: pwsh
         run: |
           $logPath = Join-Path $env:RUNNER_TEMP "windows-native-smoke.log"
-          npm run transcribe -- --input "引擎/remotion/public/demo/livestream-audio-smoke.mp4" --name windows-native-smoke --model tiny --language en 2>&1 |
+          npm run whisper:transcribe -- --input "引擎/remotion/public/demo/livestream-audio-smoke.mp4" --name windows-native-smoke --model tiny --language en 2>&1 |
             Tee-Object -FilePath $logPath
           $exitCode = $LASTEXITCODE
           if ($exitCode -ne 0) {

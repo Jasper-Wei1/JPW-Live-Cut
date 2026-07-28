@@ -10,14 +10,9 @@ export function createPreflightRanges(
   const durationMs = Math.min(sampleDurationMs, Math.round(sourceDurationMs));
   const endStartMs = Math.max(0, Math.round(sourceDurationMs) - durationMs);
   return [
-    { label: "开头", fileStem: "start", startMs: 0, durationMs },
-    {
-      label: "中段",
-      fileStem: "middle",
-      startMs: Math.round(endStartMs / 2),
-      durationMs,
-    },
-    { label: "结尾", fileStem: "end", startMs: endStartMs, durationMs },
+    { label: "开头", startMs: 0, durationMs },
+    { label: "中段", startMs: Math.round(endStartMs / 2), durationMs },
+    { label: "结尾", startMs: endStartMs, durationMs },
   ];
 }
 
@@ -26,7 +21,6 @@ export function assertTranscriptQuality(
   {
     sourceDurationMs,
     maxCaptionDurationMs = PREFLIGHT_SAMPLE_DURATION_MS,
-    allowEmpty = false,
   },
 ) {
   const captions = Array.isArray(transcript.captions) ? transcript.captions : [];
@@ -34,7 +28,7 @@ export function assertTranscriptQuality(
   if (JSON.stringify(transcript).includes("\uFFFD")) {
     issues.push("包含 U+FFFD 乱码替换字符");
   }
-  if (captions.length === 0 && !allowEmpty) issues.push("没有可用字幕");
+  if (captions.length === 0) issues.push("没有可用字幕");
 
   for (const [index, caption] of captions.entries()) {
     const startMs = Number(caption.startMs);

@@ -5,16 +5,18 @@ import { spawnSync } from "node:child_process";
 import { join, resolve } from "node:path";
 import {
   bootstrapPythonCandidates,
+  qwenRuntimeDirectory,
   qwenVenvPython,
 } from "../实验/qwen-asr/scripts/qwen-runtime-paths.mjs";
 
 const root = resolve(import.meta.dirname, "..");
 const checks = [];
+const qwenRuntimeDir = qwenRuntimeDirectory(root);
 
 const add = (name, ok, detail) => checks.push({ name, ok, detail });
 const nodeMajor = Number(process.versions.node.split(".")[0]);
 const systemPython = bootstrapPythonCandidates().map(pythonVersion).find(Boolean);
-const qwenPythonPath = qwenVenvPython(join(root, "实验/qwen-asr/.venv"));
+const qwenPythonPath = qwenVenvPython(join(qwenRuntimeDir, ".venv"));
 const qwenPython = pythonVersion(qwenPythonPath);
 
 add("Node.js 20+", nodeMajor >= 20, process.version);
@@ -52,12 +54,12 @@ add(
 );
 add(
   "Qwen3-ASR-0.6B",
-  existsSync(join(root, "实验/qwen-asr/缓存/模型/Qwen3-ASR-0.6B/config.json")),
+  existsSync(join(qwenRuntimeDir, "缓存/模型/Qwen3-ASR-0.6B/config.json")),
   "本地模型",
 );
 add(
   "Qwen3-ForcedAligner-0.6B",
-  existsSync(join(root, "实验/qwen-asr/缓存/模型/Qwen3-ForcedAligner-0.6B/config.json")),
+  existsSync(join(qwenRuntimeDir, "缓存/模型/Qwen3-ForcedAligner-0.6B/config.json")),
   "本地模型",
 );
 add(
@@ -65,7 +67,6 @@ add(
   existsSync(join(root, "输入/媒体素材/直播录像")),
   "输入/媒体素材/直播录像/",
 );
-
 for (const check of checks) {
   console.log(`${check.ok ? "正常" : "缺失"}  ${check.name} - ${check.detail}`);
 }

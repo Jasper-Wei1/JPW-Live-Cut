@@ -5,14 +5,12 @@ export function normalizeWhisperCaptions({
   whisperCppVersion,
   maxEndMs = null,
   maxTimestampOverflowMs = 1_000,
-  allowEmpty = false,
   createdAt = new Date().toISOString(),
 }) {
   const sourceDurationMs = Number.isFinite(maxEndMs)
     ? Math.round(maxEndMs)
     : null;
   const cleaned = captions
-    .filter((caption) => String(caption.text ?? "").trim() !== "[BLANK_AUDIO]")
     .map((caption) => {
       const startMs = Math.max(0, Math.round(Number(caption.startMs)));
       const endMs = Math.max(0, Math.round(Number(caption.endMs)));
@@ -42,7 +40,7 @@ export function normalizeWhisperCaptions({
         caption.endMs > caption.startMs,
     );
 
-  if (cleaned.length === 0 && !allowEmpty) {
+  if (cleaned.length === 0) {
     throw new Error("Whisper 没有返回带时间戳的字幕。");
   }
 
@@ -119,7 +117,7 @@ export function normalizeWhisperCaptions({
     whisperCppVersion,
     source,
     createdAt,
-    durationMs: cleaned.at(-1)?.endMs ?? 0,
+    durationMs: cleaned[cleaned.length - 1].endMs,
     timingGranularity: "character-estimated",
     chineseCharacterTiming:
       hanCharacters.length === 0

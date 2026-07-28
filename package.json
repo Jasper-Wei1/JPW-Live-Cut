@@ -1,6 +1,6 @@
 {
   "name": "jpw-livestream-clips",
-  "version": "1.0.2",
+  "version": "1.0.0",
   "private": true,
   "description": "本地直播精彩切片工作流，使用 Codex、本地 Qwen 和 Remotion。",
   "scripts": {
@@ -15,9 +15,10 @@
     "qwen:report": "node 实验/qwen-asr/scripts/build-qwen-ab-report.mjs",
     "clips:candidates": "node scripts/build-livestream-candidate-report.mjs",
     "clips:review": "node scripts/livestream-clip-review.mjs",
+    "clips:transcript-review": "node scripts/review-livestream-transcript.mjs",
     "clips:video-data": "node scripts/build-livestream-video-data.mjs",
     "clips:visual-review": "node scripts/livestream-visual-review.mjs",
-    "test:clips": "node --test scripts/build-livestream-candidate-report.test.mjs scripts/livestream-clip-review.test.mjs scripts/build-livestream-video-data.test.mjs scripts/livestream-visual-review.test.mjs",
+    "test:clips": "node --test scripts/build-livestream-candidate-report.test.mjs scripts/livestream-clip-review.test.mjs scripts/review-livestream-transcript.test.mjs scripts/build-livestream-video-data.test.mjs scripts/livestream-visual-review.test.mjs",
     "test:platform": "node --test scripts/platform.test.mjs",
     "studio": "npm --prefix 引擎/remotion run video:studio",
     "gallery": "node scripts/render-template-gallery.mjs",

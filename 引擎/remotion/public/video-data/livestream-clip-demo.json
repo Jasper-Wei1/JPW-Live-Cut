@@ -15,7 +15,10 @@
     "width": 1080,
     "height": 1920,
     "fps": 30,
-    "platforms": ["douyin", "xiaohongshu"]
+    "platforms": [
+      "douyin",
+      "xiaohongshu"
+    ]
   },
   "presentation": {
     "objectFit": "cover",

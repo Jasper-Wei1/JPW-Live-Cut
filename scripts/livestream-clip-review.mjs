@@ -9,7 +9,9 @@ import {
   mkdir,
   readFile,
   rename,
+  rm,
   stat,
+  writeFile,
 } from "node:fs/promises";
 import { constants } from "node:fs";
 import {
@@ -76,7 +78,7 @@ export function buildClipReviewPlan({
       height: 1920,
       fps: 30,
       durationMs: 0,
-      method: "studio",
+      method: "transcript",
       status: "pending",
       approvedAt: null,
     },
@@ -112,7 +114,7 @@ export function refreshTimeline(plan) {
 
 export function reviewClipPlan(plan, options) {
   if (plan.preview.status === "approved") {
-    throw new Error("这份 Studio 切点审核已经确认。");
+    throw new Error("这份逐字稿切点审核已经确认。");
   }
   for (const id of options.approve ?? []) setStatus(plan, id, "approved");
   for (const id of options.reject ?? []) setStatus(plan, id, "rejected");
@@ -121,23 +123,31 @@ export function reviewClipPlan(plan, options) {
     candidate.sourceStartMs = adjustment.startMs;
     candidate.sourceEndMs = adjustment.endMs;
     candidate.reviewStatus = "pending";
-    candidate.boundaryNote = adjustment.note ?? "调整后待 Studio 复核";
+    candidate.transcriptReview = { status: "stale" };
+    candidate.boundaryNote = adjustment.note ?? "调整后待逐字稿复核";
   }
   refreshTimeline(plan);
 
-  if (options.confirmStudio) {
+  if (options.confirmTranscript) {
     const pending = plan.candidates.filter(
       ({ reviewStatus }) => reviewStatus === "pending",
     );
     if (pending.length > 0) {
-      throw new Error(
-        `仍有待确认候选：${pending.map(({ id }) => id).join(", ")}`,
-      );
+      throw new Error(`仍有待确认候选：${pending.map(({ id }) => id).join(", ")}`);
     }
     if (
       !plan.candidates.some(({ reviewStatus }) => reviewStatus === "approved")
     ) {
-      throw new Error("至少需要批准一条候选才能确认 Studio。");
+      throw new Error("至少需要批准一条候选才能确认逐字稿切点。");
+    }
+    const missingReview = plan.candidates
+      .filter(({ reviewStatus }) => reviewStatus === "approved")
+      .filter(({ transcriptReview }) => transcriptReview?.status !== "completed")
+      .map(({ id }) => id);
+    if (missingReview.length > 0) {
+      throw new Error(
+        `以下候选尚未完成大模型字幕校核：${missingReview.join(", ")}`,
+      );
     }
     plan.preview.status = "approved";
     plan.preview.approvedAt = new Date().toISOString();
@@ -277,12 +287,12 @@ async function updateReview(args) {
     adjustments: args.adjustments,
     hooks: args.hooks,
     skippedHooks: args.skippedHooks,
-    confirmStudio: args.confirmStudio,
+    confirmTranscript: args.confirmTranscript,
   });
   await writeJson(planPath, plan);
   await writeJson(CURRENT_PUBLIC_PLAN, plan);
   console.log(`切点审核计划已更新：${toRepoPath(planPath)}`);
-  console.log(`Studio 状态：${plan.preview.status}`);
+  console.log(`逐字稿确认状态：${plan.preview.status}`);
 }
 
 async function applyReview(args) {
@@ -291,8 +301,8 @@ async function applyReview(args) {
   const planPath = resolve(process.cwd(), args.plan);
   const transcriptPath = resolve(process.cwd(), args.transcript);
   const plan = JSON.parse(await readFile(planPath, "utf8"));
-  if (plan.preview.status !== "approved") {
-    throw new Error("Studio 切点预览尚未确认。");
+  if (plan.preview.status !== "approved" || plan.preview.method !== "transcript") {
+    throw new Error("逐字稿切点尚未确认。");
   }
   if (plan.candidates.some(({ reviewStatus }) => reviewStatus === "pending")) {
     throw new Error("生成派生母版前，所有候选都必须明确批准或拒绝。");
@@ -393,7 +403,7 @@ function parseArgs(argv) {
     approve: null,
     reject: null,
     adjustments: [],
-    confirmStudio: false,
+    confirmTranscript: false,
     force: false,
   };
   for (let index = 1; index < argv.length; index += 1) {
@@ -415,14 +425,14 @@ function parseArgs(argv) {
         endMs: Number(end),
         note: note || null,
       });
-    } else if (arg === "--confirm-studio") result.confirmStudio = true;
+    } else if (arg === "--confirm-transcript") result.confirmTranscript = true;
     else if (arg === "--force") result.force = true;
     else if (arg === "--help" || arg === "-h") {
       console.log(`用法：
   npm run clips:review -- prepare --report <candidates.json> [--select all|id,id] [--name name]
   npm run clips:review -- review --plan <plan.json> [--approve all|id,id] [--reject id,id]
     [--set-range id:startMs:endMs:note]
-    [--confirm-studio]
+    [--confirm-transcript]
   npm run clips:review -- apply --plan <plan.json> --transcript <transcript.json>
 `);
       process.exit(0);

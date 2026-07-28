@@ -1,12 +1,14 @@
 #!/usr/bin/env node
 
 import { spawn } from "node:child_process";
-import { access, mkdir } from "node:fs/promises";
+import { access, lstat, mkdir, symlink } from "node:fs/promises";
 import { constants } from "node:fs";
 import { dirname, join, relative, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import {
   bootstrapPythonCandidates,
+  isWindows,
+  qwenRuntimeDirectory,
   qwenVenvCommand,
   qwenVenvPython,
 } from "./qwen-runtime-paths.mjs";
@@ -14,9 +16,11 @@ import {
 const scriptDir = dirname(fileURLToPath(import.meta.url));
 const experimentDir = resolve(scriptDir, "..");
 const repoRoot = resolve(experimentDir, "../..");
-const venvDir = join(experimentDir, ".venv");
+const runtimeDir = qwenRuntimeDirectory(repoRoot);
+await ensureWindowsRuntimeAlias();
+const venvDir = join(runtimeDir, ".venv");
 const python = qwenVenvPython(venvDir);
-const cacheDir = join(experimentDir, "缓存");
+const cacheDir = join(runtimeDir, "缓存");
 const modelsDir = join(cacheDir, "模型");
 const asrModelDir = join(modelsDir, "Qwen3-ASR-0.6B");
 const alignerModelDir = join(modelsDir, "Qwen3-ForcedAligner-0.6B");
@@ -79,6 +83,20 @@ async function findBootstrapPython() {
   throw new Error(
     "找不到 Python 3.10+。安装 Python 3.12 后重试，或设置 QWEN_EXPERIMENT_PYTHON 指向本地 Python 解释器。",
   );
+}
+
+async function ensureWindowsRuntimeAlias() {
+  if (!isWindows() || runtimeDir === experimentDir) return;
+  await mkdir(dirname(runtimeDir), { recursive: true });
+  try {
+    const entry = await lstat(runtimeDir);
+    if (!entry.isSymbolicLink()) {
+      throw new Error(`Windows Qwen 运行时目录必须是链接：${runtimeDir}`);
+    }
+  } catch (error) {
+    if (error.code !== "ENOENT") throw error;
+    await symlink(experimentDir, runtimeDir, "junction");
+  }
 }
 
 async function downloadModel(modelId, destination) {

@@ -27,7 +27,7 @@ export const RemotionRoot: React.FC = () => {
           height={1920}
           schema={LivestreamClipBatchPropsSchema}
           defaultProps={{
-            dataFile: "workflow/livestream-visual-review-demo.json",
+            dataFile: "workflow/livestream-visual-review-current.json",
           }}
           calculateMetadata={calculateLivestreamClipBatchMetadata}
         />
@@ -39,7 +39,7 @@ export const RemotionRoot: React.FC = () => {
           width={1080}
           height={1920}
           schema={ClipReviewCompositionPropsSchema}
-          defaultProps={{ dataFile: "workflow/clip-review-hook-demo.json" }}
+          defaultProps={{ dataFile: "workflow/clip-review-current.json" }}
           calculateMetadata={calculateClipReviewMetadata}
         />
       </Folder>

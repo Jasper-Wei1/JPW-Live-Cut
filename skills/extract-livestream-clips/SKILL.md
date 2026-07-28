@@ -36,17 +36,18 @@ description: 从一段已保存的本地直播录像中筛选、审核并制作 
    重叠去重。去重淘汰项也必须保留原因和 `duplicateOf`。
 6. 向用户交付可直接阅读的候选审核稿，不得只给标题和分数。
    候选数量可为 0 或任意正整数，不得截断为前 5 条。
-7. 运行 `npm run clips:review -- prepare ...`，为已选择候选生成连续源区间的
-   Studio 审核计划。
-8. 在 Studio 打开 `Workflow > LivestreamClipReview`，实际查看每条候选从原起点
-   到原终点的连续播放结果。任何切点变化都会重置为待确认；用户明确处理全部
-   候选后，才能 `--confirm-studio`。
+7. 对已选择候选运行 `clips:transcript-review -- prepare --plan <plan.json> --transcript <full-qwen-transcript.json>`，
+   由当前 Agent 模型校核并以同一参数运行 `apply`。交付可直接阅读的逐字稿切点确认稿：每条必须列出
+   连续原片起止时间、校核后字幕、已改项和 `ambiguities`；确认范围仅限连续源区间与字幕，不得用 Studio
+   代替此确认。
+8. 用户在逐字稿确认稿中明确处理全部候选和边界。任何切点变化都会重置为待确认；确认后，
+   使用 `npm run clips:review -- review --plan <plan.json> --confirm-transcript` 记录门禁。
 9. 运行 `npm run clips:review -- apply ...`。每个已批准区间生成独立
    派生母版和重映射逐字稿，并立即锁定时长。
-10. 对每个锁定的连续区间复用 Qwen 时间轴重映射稿。只修正原声可明确验证的错字、
-    专名和短小歧义；不得重新转写、整句改写或为流畅补句。不确定内容写入
-    `ambiguities`，供用户结合原声审核。
-12. 运行 `npm run clips:video-data -- --plan <approved-clips.json>`。在 Studio
+10. 对每个锁定的连续区间复用 Qwen 时间轴重映射稿，并运行
+    `npm run clips:transcript-review -- apply --plan <approved-clips.json> --review <review-output.json>`，复用切点确认前
+    已确认的同一份校核结果。不得再次调用模型；程序只接受原文精确匹配、连续、等长度的字符替换。
+12. 运行 `npm run clips:video-data -- --plan <approved-clips.json>`。该命令只读取已审校逐字稿。在 Studio
     打开 `Workflow > LivestreamClipVisualReview`，检查全部已批准切片的人脸、字幕、
     9:16 居中裁切、人脸和字幕安全区。
 13. 实际查看检查图后运行 `npm run clips:visual-review -- mark-stills`。
@@ -82,7 +83,7 @@ npm run clips:candidates -- build \
 
 - 确认只对当前已经展示的审核层级生效，不得自动延伸到后续尚未展示的步骤。
 - 在候选审核稿上说“全部保留”，表示选中当前全部候选，不代表切点或视觉已确认。
-- 在切点 Studio 审核上说“全部切点确认”，只批准当前连续源区间，并解锁
+- 在切点逐字稿确认稿上说“全部切点确认”，只批准当前连续源区间，并解锁
   派生母版生成与时间轴锁定。
 - 在最终视觉审核上说“确认通过”，只批准 9:16 裁切、字幕和画面处理。
 - 在标题确认稿上说“全部确认”，只批准当前列出的最终内容标题。

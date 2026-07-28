@@ -4,6 +4,7 @@ import { join } from "node:path";
 import {
   bootstrapPythonCandidates,
   joinPythonPath,
+  qwenRuntimeDirectory,
   qwenVenvCommand,
   qwenVenvPython,
   remotionInvocation,
@@ -20,6 +21,8 @@ test("Qwen 虚拟环境路径在 Windows 使用 Scripts 和 exe", () => {
   assert.equal(qwenVenvCommand("runtime", "modelscope", "win32"), join("runtime", "Scripts", "modelscope.exe"));
   assert.equal(joinPythonPath(["one", "two"], "win32"), "one;two");
   assert.deepEqual(bootstrapPythonCandidates({ platform: "win32" }), ["py", "python"]);
+  assert.equal(qwenRuntimeDirectory("repo", "win32"), join("repo", ".jpw-cache", "qwen-asr"));
+  assert.equal(qwenRuntimeDirectory("repo", "darwin"), join("repo", "实验", "qwen-asr"));
 });
 
 test("Remotion CLI 通过 Node 直接启动，避免 Windows shell shim", () => {

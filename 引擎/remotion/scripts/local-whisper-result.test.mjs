@@ -47,10 +47,18 @@ test("将接近源音频结尾的字幕裁切到有效时长", () => {
 
   assert.equal(result.captions[0].endMs, 30000);
   assert.equal(result.durationMs, 30000);
+  const toleratedResult = normalizeWhisperCaptions({
+    captions: [{ text: "尾部偏移", startMs: 28880, endMs: 31480 }],
+    model: "small",
+    source: "sample.wav",
+    whisperCppVersion: "1.5.5",
+    maxEndMs: 30000,
+  });
+  assert.equal(toleratedResult.captions[0].endMs, 30000);
   assert.throws(
     () =>
       normalizeWhisperCaptions({
-        captions: [{ text: "异常", startMs: 28880, endMs: 31001 }],
+        captions: [{ text: "异常", startMs: 28880, endMs: 31501 }],
         model: "small",
         source: "sample.wav",
         whisperCppVersion: "1.5.5",

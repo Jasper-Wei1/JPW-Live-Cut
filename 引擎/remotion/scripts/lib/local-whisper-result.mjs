@@ -18,7 +18,9 @@ export function normalizeWhisperCaptions({
         sourceDurationMs !== null &&
         endMs > sourceDurationMs + maxTimestampOverflowMs
       ) {
-        throw new Error("Whisper 字幕时间码超出源音频允许范围。");
+        throw new Error(
+          `Whisper 字幕时间码超出源音频允许范围（${endMs}ms，源时长 ${sourceDurationMs}ms，容差 ${maxTimestampOverflowMs}ms）。`,
+        );
       }
       return {
         text: String(caption.text ?? "").trim(),

@@ -1,5 +1,12 @@
 # 变更记录
 
+## 2026-07-29 - v1.2.0
+
+### Qwen 单一转录路径
+
+- 移除 Whisper.cpp 回退转录、Windows 原生 Whisper 冒烟、相关依赖、A/B 对照和技术缓存说明；项目只使用本地 `Qwen3-ASR-0.6B + Qwen3-ForcedAligner-0.6B`。
+- 移除所有可调用的 Whisper 命令，字幕生成、逐字稿时间轴和审校统一以 Qwen 输出为真源。
+
 ## 2026-07-29 - v1.1.4
 
 ### Windows 原生冒烟修复

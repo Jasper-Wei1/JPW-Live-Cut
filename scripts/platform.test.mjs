@@ -1,40 +1,9 @@
 import assert from "node:assert/strict";
-import { readFile } from "node:fs/promises";
 import test from "node:test";
 import { join } from "node:path";
-import {
-  commandLocator,
-  remotionInvocation,
-  requiredPlatformTools,
-  runtimeTuning,
-  usesWhisperTokenTimestamps,
-  whisperDirectory,
-  whisperExecutableName,
-} from "./platform.mjs";
+import { remotionInvocation, runtimeTuning } from "./platform.mjs";
 
-test("Windows 使用 .exe Whisper 二进制且不要求 Make", () => {
-  assert.equal(whisperExecutableName("win32"), "main.exe");
-  assert.deepEqual(requiredPlatformTools("win32"), ["powershell.exe"]);
-  assert.equal(commandLocator("win32"), "where.exe");
-  assert.equal(usesWhisperTokenTimestamps("win32"), false);
-});
-
-test("Unix 使用 Make 和无扩展名 Whisper 二进制", () => {
-  assert.equal(whisperExecutableName("darwin"), "main");
-  assert.deepEqual(requiredPlatformTools("linux"), ["make"]);
-  assert.equal(commandLocator("linux"), "which");
-  assert.equal(usesWhisperTokenTimestamps("darwin"), true);
-});
-
-test("Whisper 缓存位于仓库内的 ASCII 技术缓存目录", () => {
-  const root = join("workspace", "project");
-  assert.equal(
-    whisperDirectory(root),
-    join(root, ".jpw-cache", "whisper.cpp"),
-  );
-});
-
-test("Remotion 始终通过 Node 直接执行 CLI 入口", () => {
+test("Remotion CLI uses the Node entry point", () => {
   const remotionDir = join("workspace", "engine");
   const invocation = remotionInvocation(remotionDir, ["ffmpeg", "-version"]);
   assert.equal(invocation.command, process.execPath);
@@ -51,7 +20,7 @@ test("Remotion 始终通过 Node 直接执行 CLI 入口", () => {
   ]);
 });
 
-test("根据当前可用处理器和内存推导运行时并发", () => {
+test("Runtime tuning derives render concurrency from processors and memory", () => {
   assert.deepEqual(
     runtimeTuning({
       availableProcessors: 12,
@@ -60,7 +29,6 @@ test("根据当前可用处理器和内存推导运行时并发", () => {
     {
       availableProcessors: 12,
       memoryGiB: 32,
-      whisperThreads: 10,
       renderConcurrency: 8,
       hardwareAcceleration: "if-possible",
     },
@@ -73,19 +41,8 @@ test("根据当前可用处理器和内存推导运行时并发", () => {
     {
       availableProcessors: 4,
       memoryGiB: 8,
-      whisperThreads: 3,
       renderConcurrency: 2,
       hardwareAcceleration: "if-possible",
     },
   );
-});
-
-test("Windows 原生冒烟显式验证 Whisper 回退而非默认 Qwen 入口", async () => {
-  const workflow = await readFile(
-    new URL("../.github/workflows/windows-native-smoke.yml", import.meta.url),
-    "utf8",
-  );
-  assert.match(workflow, /npm run whisper:setup -- --model tiny/u);
-  assert.match(workflow, /npm run whisper:transcribe -- --input .*--model tiny --language en/u);
-  assert.doesNotMatch(workflow, /npm run setup -- --model tiny/u);
 });

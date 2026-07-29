@@ -25,7 +25,7 @@ type Caption = {
 
 ## Generating captions
 
-To transcribe video and audio files to generate captions, load the [transcribe-captions.md](transcribe-captions.md) file for more instructions.
+Use `npm run transcribe -- --input <media> --name <name>` from the repository root. This project only permits local `Qwen3-ASR-0.6B + Qwen3-ForcedAligner-0.6B`; do not add another ASR model or cloud transcription service.
 
 ## Displaying captions
 

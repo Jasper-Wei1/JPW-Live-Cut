@@ -110,7 +110,7 @@ schemaVersion 1 的逐字稿到 工作区/数据/草稿。
   --chunk-seconds <1-240> 对齐分段秒数，默认 120
   --force                 覆盖同名 Qwen 输出
 
-Whisper.cpp 回退：npm run whisper:transcribe -- --input <media> --name <name>`);
+`);
 }
 
 async function extractAudio(input, output) {

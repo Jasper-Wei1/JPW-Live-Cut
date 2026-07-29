@@ -32,6 +32,7 @@ import {
 import { normalizeWhisperCaptions } from "./lib/local-whisper-result.mjs";
 import {
   assertTranscriptQuality,
+  createPreflightSampleId,
   createPreflightRanges,
 } from "./lib/transcript-quality.mjs";
 import {
@@ -282,16 +283,17 @@ async function extractAudio(input, output) {
 }
 
 async function runPreflight(wavPath, sourceDurationMs, args) {
-  for (const range of createPreflightRanges(sourceDurationMs)) {
+  for (const [index, range] of createPreflightRanges(sourceDurationMs).entries()) {
+    const sampleId = createPreflightSampleId(index);
     const samplePath = join(
       dirname(wavPath),
-      `preflight-${range.label}.wav`,
+      `${sampleId}.wav`,
     );
     await extractAudioRange(samplePath, wavPath, range);
     console.log(`正在预检原片${range.label} 30 秒字幕……`);
     const { normalized } = await transcribeNormalized(
       samplePath,
-      `preflight-${range.label}`,
+      sampleId,
       args,
       range.durationMs,
     );

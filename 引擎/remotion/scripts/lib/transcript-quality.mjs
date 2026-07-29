@@ -1,5 +1,9 @@
 export const PREFLIGHT_SAMPLE_DURATION_MS = 30_000;
 
+export function createPreflightSampleId(index) {
+  return `preflight-${index + 1}`;
+}
+
 export function createPreflightRanges(
   sourceDurationMs,
   sampleDurationMs = PREFLIGHT_SAMPLE_DURATION_MS,

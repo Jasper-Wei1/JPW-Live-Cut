@@ -4,7 +4,7 @@ export function normalizeWhisperCaptions({
   source,
   whisperCppVersion,
   maxEndMs = null,
-  maxTimestampOverflowMs = 1_500,
+  maxTimestampOverflowMs = 2_500,
   createdAt = new Date().toISOString(),
 }) {
   const sourceDurationMs = Number.isFinite(maxEndMs)

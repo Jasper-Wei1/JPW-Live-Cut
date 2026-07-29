@@ -18,6 +18,4 @@ Node.js、Python、依赖、Qwen 模型或任何用户媒体。模型会在本�
 5. 双击 `Windows/install.cmd`，或在 PowerShell 运行 `npm run setup`。
 
 安装完成后，运行 `npm run doctor` 和 `npm run qwen:test`。随后将直播录像放入
-`输入/媒体素材/直播录像/`，按 Qwen 指南完成冒烟验证。
-
-Whisper.cpp 仅是显式回退，不用于验证 Qwen 字幕质量。
+`输入/媒体素材/直播录像/`，按 Qwen 指南完成冒烟验证。转录只使用本地 Qwen 模型。

@@ -5,13 +5,15 @@ import test from "node:test";
 
 const root = resolve(import.meta.dirname, "..");
 
-test("默认转录入口使用本地 Qwen，并保留 Whisper 显式回退", async () => {
+test("Default transcription uses only local Qwen", async () => {
   const manifest = JSON.parse(await readFile(resolve(root, "package.json"), "utf8"));
   assert.equal(manifest.scripts.transcribe, "node scripts/transcribe-qwen-default.mjs");
-  assert.equal(manifest.scripts["whisper:transcribe"], "node 引擎/remotion/scripts/transcribe-local.mjs");
+  assert.equal(manifest.scripts["whisper:setup"], undefined);
+  assert.equal(manifest.scripts["whisper:transcribe"], undefined);
+  assert.equal(manifest.scripts["qwen:report"], undefined);
 });
 
-test("默认 Qwen 包装器保留时长校验和跨平台本地运行入口", async () => {
+test("Default Qwen wrapper keeps duration validation and local execution", async () => {
   const source = await readFile(resolve(root, "scripts/transcribe-qwen-default.mjs"), "utf8");
   assert.match(source, /\$\{name\}-transcript\.json/);
   assert.match(source, /--normalized-output-name/);
@@ -21,4 +23,5 @@ test("默认 Qwen 包装器保留时长校验和跨平台本地运行入口", as
   assert.match(source, /qwenVenvPython/);
   assert.match(source, /remotionInvocation/);
   assert.doesNotMatch(source, /node_modules\/\.bin\/remotion/);
+  assert.doesNotMatch(source, /Whisper/u);
 });

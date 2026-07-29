@@ -27,7 +27,7 @@ For advanced rendering beyond simple `npx remotion render`, see: [Rendering Best
 
 ## Captions
 
-When working with Captions, load [Remotion Captions](remotion-captions/REFERENCE.md).
+This repository generates captions through its local Qwen workflow. Do not introduce another ASR implementation; use the project `remotion-captions` skill for caption output requirements.
 
 ## Creating a SaaS, automation or application
 

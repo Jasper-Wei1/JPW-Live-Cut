@@ -2,8 +2,15 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import {
   assertTranscriptQuality,
+  createPreflightSampleId,
   createPreflightRanges,
 } from "./lib/transcript-quality.mjs";
+
+test("预检音频文件名始终使用 ASCII 序号", () => {
+  assert.equal(createPreflightSampleId(0), "preflight-1");
+  assert.equal(createPreflightSampleId(2), "preflight-3");
+  assert.match(createPreflightSampleId(1), /^[\x00-\x7F]+$/u);
+});
 
 test("生成开头、中段和结尾各 30 秒的转录预检范围", () => {
   assert.deepEqual(createPreflightRanges(120000), [

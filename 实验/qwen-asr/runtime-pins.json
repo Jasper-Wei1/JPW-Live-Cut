@@ -1,0 +1,19 @@
+{
+  "schemaVersion": 1,
+  "pythonPackages": {
+    "torch": "2.13.0",
+    "torchaudio": "2.11.0"
+  },
+  "models": {
+    "asr": {
+      "id": "Qwen/Qwen3-ASR-0.6B",
+      "revision": "4ce9cc728b473a5aedbe7b6e1ea45646316824dc",
+      "license": "Apache-2.0"
+    },
+    "forcedAligner": {
+      "id": "Qwen/Qwen3-ForcedAligner-0.6B",
+      "revision": "cf1c50164ea3ac48240d12bef5ead74aee0720cc",
+      "license": "Apache-2.0"
+    }
+  }
+}

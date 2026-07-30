@@ -1,0 +1,51 @@
+name: Bug 报告
+description: 报告可复现的安装、转录、审核或渲染问题
+title: "[Bug] "
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: 请勿上传真实媒体、逐字稿、令牌或包含个人信息的日志。安全问题请使用 Security 私密报告。
+  - type: input
+    id: version
+    attributes:
+      label: 版本
+      description: Release 版本或提交哈希
+      placeholder: v1.2.0
+    validations:
+      required: true
+  - type: dropdown
+    id: platform
+    attributes:
+      label: 平台
+      options:
+        - macOS Apple Silicon
+        - Windows 10/11 x64
+        - 其他或未支持平台
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: 复现步骤
+      description: 使用不含私人数据的最小示例描述复现过程
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: 预期结果
+    validations:
+      required: true
+  - type: textarea
+    id: actual
+    attributes:
+      label: 实际结果
+    validations:
+      required: true
+  - type: textarea
+    id: diagnostics
+    attributes:
+      label: 环境检查与日志
+      description: 粘贴已脱敏的 `npm run doctor` 输出和必要错误信息
+      render: shell

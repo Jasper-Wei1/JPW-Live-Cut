@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 
 import { spawn } from "node:child_process";
-import { access, lstat, mkdir, symlink } from "node:fs/promises";
+import { access, lstat, mkdir, readFile, symlink } from "node:fs/promises";
 import { constants } from "node:fs";
 import { dirname, join, relative, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -25,6 +25,9 @@ const modelsDir = join(cacheDir, "模型");
 const asrModelDir = join(modelsDir, "Qwen3-ASR-0.6B");
 const alignerModelDir = join(modelsDir, "Qwen3-ForcedAligner-0.6B");
 const requirements = join(experimentDir, "requirements.txt");
+const runtimePins = JSON.parse(
+  await readFile(join(experimentDir, "runtime-pins.json"), "utf8"),
+);
 const args = new Set(process.argv.slice(2));
 
 if (args.has("--help") || args.has("-h")) {
@@ -49,31 +52,49 @@ if (!(await exists(python))) {
 }
 
 await run(python, ["-m", "pip", "install", "--upgrade", "pip"]);
-await run(python, ["-m", "pip", "install", "torch", "torchaudio"]);
+await run(python, [
+  "-m",
+  "pip",
+  "install",
+  `torch==${runtimePins.pythonPackages.torch}`,
+  `torchaudio==${runtimePins.pythonPackages.torchaudio}`,
+]);
 await run(python, ["-m", "pip", "install", "-r", requirements]);
 
-await downloadModel("Qwen/Qwen3-ASR-0.6B", asrModelDir);
-await downloadModel("Qwen/Qwen3-ForcedAligner-0.6B", alignerModelDir);
+await downloadModel(runtimePins.models.asr, asrModelDir);
+await downloadModel(runtimePins.models.forcedAligner, alignerModelDir);
 
 console.log("独立 Qwen 实验环境已就绪。");
 console.log(`ASR 模型：${toRepoPath(asrModelDir)}`);
 console.log(`对齐模型：${toRepoPath(alignerModelDir)}`);
 
 async function assertPython(command) {
-  const version = await output(command, ["-c", "import sys; print('.'.join(map(str, sys.version_info[:2])))"]);
+  const version = await output(command, [
+    "-c",
+    "import sys; print('.'.join(map(str, sys.version_info[:2])))",
+  ]);
   const [major, minor] = version.trim().split(".").map(Number);
   if (major !== 3 || minor < 10) {
-    throw new Error(`Qwen 实验需要 Python 3.10+；官方推荐 Python 3.12，当前为 ${version.trim()}。`);
+    throw new Error(
+      `Qwen 实验需要 Python 3.10+；官方推荐 Python 3.12，当前为 ${version.trim()}。`,
+    );
   }
   console.log(`使用隔离环境基底 Python ${version.trim()}：${command}`);
 }
 
 async function findBootstrapPython() {
-  if (process.env.QWEN_EXPERIMENT_PYTHON) return process.env.QWEN_EXPERIMENT_PYTHON;
-  const bundledPython = resolve(dirname(process.execPath), "../../python/bin/python3");
+  if (process.env.QWEN_EXPERIMENT_PYTHON)
+    return process.env.QWEN_EXPERIMENT_PYTHON;
+  const bundledPython = resolve(
+    dirname(process.execPath),
+    "../../python/bin/python3",
+  );
   for (const candidate of bootstrapPythonCandidates({ bundledPython })) {
     try {
-      const version = await output(candidate, ["-c", "import sys; print('.'.join(map(str, sys.version_info[:2])))"]);
+      const version = await output(candidate, [
+        "-c",
+        "import sys; print('.'.join(map(str, sys.version_info[:2])))",
+      ]);
       const [major, minor] = version.trim().split(".").map(Number);
       if (major === 3 && minor >= 10) return candidate;
     } catch {
@@ -99,23 +120,28 @@ async function ensureWindowsRuntimeAlias() {
   }
 }
 
-async function downloadModel(modelId, destination) {
-  if (await exists(join(destination, "config.json"))) {
-    console.log(`模型已存在，跳过下载：${toRepoPath(destination)}`);
-    return;
-  }
+async function downloadModel(model, destination) {
+  const { id: modelId, revision } = model;
   await mkdir(destination, { recursive: true });
-  console.log(`下载官方模型 ${modelId} 到 ${toRepoPath(destination)}`);
-  await run(qwenVenvCommand(venvDir, "modelscope"), [
-    "download",
-    "--model",
-    modelId,
-    "--local_dir",
-    destination,
-  ], {
-    MODELSCOPE_CACHE: cacheDir,
-    HF_HOME: join(cacheDir, "huggingface"),
-  });
+  console.log(
+    `同步官方模型 ${modelId}@${revision} 到 ${toRepoPath(destination)}`,
+  );
+  await run(
+    qwenVenvCommand(venvDir, "modelscope"),
+    [
+      "download",
+      "--model",
+      modelId,
+      "--revision",
+      revision,
+      "--local_dir",
+      destination,
+    ],
+    {
+      MODELSCOPE_CACHE: cacheDir,
+      HF_HOME: join(cacheDir, "huggingface"),
+    },
+  );
   if (!(await exists(join(destination, "config.json")))) {
     throw new Error(`模型下载未产生 config.json：${toRepoPath(destination)}`);
   }
@@ -146,7 +172,10 @@ function output(command, commandArgs) {
     child.on("error", rejectOutput);
     child.on("exit", (code) => {
       if (code === 0) resolveOutput(stdout);
-      else rejectOutput(new Error(`${command} exited with code ${code}: ${stderr}`));
+      else
+        rejectOutput(
+          new Error(`${command} exited with code ${code}: ${stderr}`),
+        );
     });
   });
 }

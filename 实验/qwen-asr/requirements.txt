@@ -1,4 +1,4 @@
 # Official Qwen runtime. The exact package version matches the upstream
 # Qwen3-ASR repository release used by this experiment.
 qwen-asr==0.0.6
-modelscope
+modelscope==1.38.1

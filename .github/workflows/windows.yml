@@ -1,13 +1,26 @@
-name: Windows compatibility
+name: Project checks
 
 on:
   push:
     branches: [main]
   pull_request:
 
+permissions:
+  contents: read
+
+concurrency:
+  group: checks-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   check:
-    runs-on: windows-latest
+    name: ${{ matrix.os }} / Node 20
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 20
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [macos-14, windows-latest]
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4

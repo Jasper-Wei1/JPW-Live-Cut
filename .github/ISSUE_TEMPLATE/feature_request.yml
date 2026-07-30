@@ -1,0 +1,26 @@
+name: 功能建议
+description: 提议一个符合直播连续切片边界的改进
+title: "[Feature] "
+labels: ["enhancement"]
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: 要解决的问题
+      description: 描述当前工作流中可观察的问题，不要只写功能名称
+    validations:
+      required: true
+  - type: textarea
+    id: outcome
+    attributes:
+      label: 期望结果
+      description: 说明完成后用户能做什么，以及如何验收
+    validations:
+      required: true
+  - type: textarea
+    id: boundaries
+    attributes:
+      label: 边界与风险
+      description: 是否影响连续源区间、原声主音频、字幕真源或人工确认门禁
+    validations:
+      required: true
